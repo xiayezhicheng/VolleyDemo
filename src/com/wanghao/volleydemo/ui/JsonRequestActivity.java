@@ -1,10 +1,14 @@
 package com.wanghao.volleydemo.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
@@ -33,6 +37,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.wanghao.volleydemo.R;
 import com.wanghao.volleydemo.data.GsonRequest;
 import com.wanghao.volleydemo.data.RequestManager;
@@ -115,10 +120,17 @@ public class JsonRequestActivity extends BaseActivity implements OnClickListener
 					@Override
 					public void onResponse(JSONObject response) {
 						System.out.print(response.toString());
-						Gson gson = new Gson();
-						Weather weather = gson.fromJson(response.toString(), Weather.class);
-						txt_objectrequest.setText(weather.getWeatherinfo().getCity()
-								+"-"+weather.getWeatherinfo().getTemp());
+//						Gson gson = new Gson();
+//						Weather weather = gson.fromJson(response.toString(), Weather.class);
+//						txt_objectrequest.setText(weather.getWeatherinfo().getCity()
+//								+"-"+weather.getWeatherinfo().getTemp());
+						try {
+							JSONObject jo = response.getJSONObject("weatherinfo");
+							txt_objectrequest.setText(jo.get("city")
+									+"-"+jo.get("temp"));
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
 					}
 				}, 
 				//可以自己写出错时执行的操作，也可以直接用baseactivity定义好的
@@ -163,12 +175,17 @@ public class JsonRequestActivity extends BaseActivity implements OnClickListener
 					@Override
 					public void onResponse(String response) {
 						Gson gson = new Gson();
-						JsonParser parser = new JsonParser();
-						JsonArray jarray = parser.parse(response).getAsJsonArray();
-						for(JsonElement obj : jarray){
-							Provinces provinces = gson.fromJson(obj, Provinces.class);
-							data.add(provinces.getProName());
+						List<Provinces> provinces = gson.fromJson(response,new TypeToken<List<Provinces>>(){}.getType());
+//						JsonParser parser = new JsonParser();
+//						JsonArray jarray = parser.parse(response).getAsJsonArray();
+//						for(JsonElement obj : jarray){
+//							Provinces provinces = gson.fromJson(obj, Provinces.class);
+//							data.add(provinces.getProName());
+//						}
+						for (Iterator<Provinces> pIterator = provinces.iterator(); pIterator.hasNext();) {
+							data.add(pIterator.next().getProName());
 						}
+						
 						adapter.notifyDataSetChanged();
 						popupWindow.showAsDropDown(txt_arrayrequest); 
 					}
